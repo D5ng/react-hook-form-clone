@@ -1,4 +1,4 @@
-import { ChangeEventHandler, FocusEventHandler } from "react"
+import { ChangeEventHandler, FocusEventHandler, FormEvent } from "react"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type FieldValues = Record<string, any>
@@ -23,6 +23,7 @@ export interface UseFormParams<TFieldValues> {
 export interface UseFormReturn<TFieldValues extends FieldValues> {
   formState: UseFormState<TFieldValues>
   register: UseFormRegister<TFieldValues>
+  handleSubmit: UseFormHandleSubmit<TFieldValues>
 }
 
 export type RegisterOptions = Partial<{
@@ -43,3 +44,9 @@ export type UseFormRegisterReturn<TFieldName extends keyof TFieldValues, TFieldV
   onBlur: FocusEventHandler<FieldElement>
   value: TFieldValues[TFieldName]
 }
+
+export type SubmitHandler<TFieldValues> = (data: TFieldValues) => Promise<void> | void
+
+export type UseFormHandleSubmit<TFieldValues extends FieldValues> = (
+  onValid: SubmitHandler<TFieldValues>
+) => (event: FormEvent) => Promise<void>

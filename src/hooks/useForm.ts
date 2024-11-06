@@ -4,6 +4,7 @@ import type {
   FieldState,
   FieldValues,
   RegisterOptions,
+  UseFormHandleSubmit,
   UseFormParams,
   UseFormRegister,
   UseFormReturn,
@@ -64,6 +65,22 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
     return errors
   }, [])
 
+  const handleSubmit: UseFormHandleSubmit<TFieldValues> = (onSubmit) => async (event) => {
+    event.preventDefault()
+    const errors = validateForm(formState.values)
+    if (Object.values(errors).some(Boolean)) return
+
+    setFormState((prevFormState) => ({ ...prevFormState, isSubmitting: true }))
+
+    try {
+      await onSubmit(formState.values)
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setFormState((prevFormState) => ({ ...prevFormState, isSubmitting: false }))
+    }
+  }
+
   useEffect(() => {
     const errors = validateForm(formState.values)
     handleError(errors)
@@ -88,5 +105,6 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
   return {
     formState,
     register,
+    handleSubmit,
   }
 }
