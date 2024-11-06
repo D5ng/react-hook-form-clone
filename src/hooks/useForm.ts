@@ -20,6 +20,7 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
     touchedFields: {},
     errors: {},
     isSubmitting: false,
+    isValid: false,
   })
 
   const validateOptions = useRef<Partial<Record<keyof TFieldValues, RegisterOptions>>>({})
@@ -53,12 +54,9 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
     let errors: FieldState<TFieldValues, string> = {}
 
     for (const field in values) {
-      const fieldErrors = validateField(
-        values[field],
-        field as keyof TFieldValues,
-        validateOptions.current[field] as RegisterOptions
-      )
-
+      const fieldValue = values[field]
+      const filedValidate = validateOptions.current[field]
+      const fieldErrors = validateField(fieldValue, field, filedValidate)
       errors = { ...errors, ...fieldErrors }
     }
 
@@ -74,6 +72,7 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
 
     try {
       await onSubmit(formState.values)
+      setFormState((prevFormState) => ({ ...prevFormState, isValid: true }))
     } catch (error) {
       console.log(error)
     } finally {
@@ -83,6 +82,11 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
 
   useEffect(() => {
     const errors = validateForm(formState.values)
+
+    if (Object.values(errors).every((error) => !error)) {
+      setFormState((prevFormState) => ({ ...prevFormState, isValid: true }))
+    }
+
     handleError(errors)
   }, [formState.values, handleError, validateForm])
 

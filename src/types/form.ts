@@ -14,6 +14,7 @@ export interface UseFormState<TFieldValues> {
   touchedFields: FieldState<TFieldValues, boolean>
   errors: FieldState<TFieldValues, string>
   isSubmitting: boolean
+  isValid: boolean
 }
 
 export interface UseFormParams<TFieldValues> {
