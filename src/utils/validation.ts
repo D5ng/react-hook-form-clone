@@ -1,4 +1,4 @@
-import { FieldValues, RegisterOptions } from "@/types/form"
+import { FieldState, FieldValues, RegisterOptions } from "@/types/form"
 
 export function validateField<TFieldValues extends FieldValues>(
   value: TFieldValues[keyof TFieldValues],
@@ -34,4 +34,19 @@ export function validateField<TFieldValues extends FieldValues>(
   errors[field] = ""
 
   return errors
+}
+
+export function hasAnyError<TFieldValues extends FieldValues>(errors: FieldState<TFieldValues, string>) {
+  return Object.values(errors).some((error) => error)
+}
+
+export function allTouchedFields<TFieldValues extends FieldValues>(values: FieldState<TFieldValues, string>) {
+  return Object.keys(values).reduce((touched, field) => {
+    touched[field as keyof TFieldValues] = true
+    return touched
+  }, {} as FieldState<TFieldValues, boolean>)
+}
+
+export function allFieldsValid<TFieldValues extends FieldValues>(errors: FieldState<TFieldValues, string>) {
+  return Object.values(errors).every((error) => !error)
 }
