@@ -10,7 +10,7 @@ import type {
   UseFormReturn,
   UseFormState,
 } from "@/types/form"
-import { validateField } from "@/utils/validation"
+import { allFieldsValid, allTouchedFields, hasAnyError, validateField } from "@/utils/validation"
 
 export default function useForm<TFieldValues extends FieldValues = FieldValues>({
   defaultValues,
@@ -63,16 +63,31 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
     return errors
   }, [])
 
+  const setAllTouchedFields = useCallback(
+    () =>
+      setFormState((prevFormState) => ({
+        ...prevFormState,
+        touchedFields: allTouchedFields<TFieldValues>(prevFormState.values),
+      })),
+    []
+  )
+
   const handleSubmit: UseFormHandleSubmit<TFieldValues> = (onSubmit) => async (event) => {
     event.preventDefault()
     const errors = validateForm(formState.values)
-    if (Object.values(errors).some(Boolean)) return
+
+    setAllTouchedFields()
+
+    if (hasAnyError(errors)) {
+      handleError(errors)
+      return
+    }
 
     setFormState((prevFormState) => ({ ...prevFormState, isSubmitting: true }))
 
     try {
       await onSubmit(formState.values)
-      setFormState((prevFormState) => ({ ...prevFormState, isValid: true }))
+      setFormState((prevFormState) => ({ ...prevFormState, isValid: true, touchedFields: {} }))
     } catch (error) {
       console.log(error)
     } finally {
@@ -83,7 +98,7 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
   useEffect(() => {
     const errors = validateForm(formState.values)
 
-    if (Object.values(errors).every((error) => !error)) {
+    if (allFieldsValid(errors)) {
       setFormState((prevFormState) => ({ ...prevFormState, isValid: true }))
     }
 
