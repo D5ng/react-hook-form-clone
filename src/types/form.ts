@@ -15,6 +15,7 @@ export interface UseFormState<TFieldValues> {
   errors: FieldState<TFieldValues, string>
   isSubmitting: boolean
   isValid: boolean
+  defaultValues: TFieldValues
 }
 
 export interface UseFormParams<TFieldValues> {

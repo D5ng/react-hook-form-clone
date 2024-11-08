@@ -21,6 +21,7 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
     errors: {},
     isSubmitting: false,
     isValid: false,
+    defaultValues,
   })
 
   const validateOptions = useRef<Partial<Record<keyof TFieldValues, RegisterOptions>>>({})
@@ -73,6 +74,17 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
     }
   }, [formState.touchedFields, formState.values, handleError])
 
+  const resetFormState = useCallback(() => {
+    setFormState((prevFormState) => ({
+      values: prevFormState.defaultValues,
+      touchedFields: {},
+      errors: {},
+      isValid: false,
+      isSubmitting: false,
+      defaultValues: prevFormState.defaultValues,
+    }))
+  }, [])
+
   const handleSubmit: UseFormHandleSubmit<TFieldValues> = (onSubmit, onError) => async (event) => {
     event.preventDefault()
     const errors = validateForm(formState.values)
@@ -86,7 +98,7 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
 
     try {
       await onSubmit(formState.values)
-      setFormState((prevFormState) => ({ ...prevFormState, touchedFields: {} }))
+      resetFormState()
     } catch (error) {
       const err = error as Error
       if (onError) {
