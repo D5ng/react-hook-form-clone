@@ -37,16 +37,5 @@ export function validateField<TFieldValues extends FieldValues>(
 }
 
 export function hasAnyError<TFieldValues extends FieldValues>(errors: FieldState<TFieldValues, string>) {
-  return Object.values(errors).some((error) => error)
-}
-
-export function allTouchedFields<TFieldValues extends FieldValues>(values: FieldState<TFieldValues, string>) {
-  return Object.keys(values).reduce((touched, field) => {
-    touched[field as keyof TFieldValues] = true
-    return touched
-  }, {} as FieldState<TFieldValues, boolean>)
-}
-
-export function allFieldsValid<TFieldValues extends FieldValues>(errors: FieldState<TFieldValues, string>) {
-  return Object.values(errors).every((error) => !error)
+  return Object.values(errors).some((error) => error) || Object.keys(errors).length === 0
 }
