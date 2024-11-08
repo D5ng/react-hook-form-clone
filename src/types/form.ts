@@ -48,6 +48,9 @@ export type UseFormRegisterReturn<TFieldName extends keyof TFieldValues, TFieldV
 
 export type SubmitHandler<TFieldValues> = (data: TFieldValues) => Promise<void> | void
 
+export type SubimtErrorHandler = (error: Error) => Promise<void> | void
+
 export type UseFormHandleSubmit<TFieldValues extends FieldValues> = (
-  onValid: SubmitHandler<TFieldValues>
+  onValid: SubmitHandler<TFieldValues>,
+  onInvalid?: SubimtErrorHandler
 ) => (event: FormEvent) => Promise<void>
