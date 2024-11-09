@@ -1,5 +1,5 @@
+import useForm from "@/hooks/useForm"
 import { useEffect } from "react"
-import { useForm } from "react-hook-form"
 
 interface DefaultValues {
   email: string
@@ -37,11 +37,8 @@ const defaultValues: DefaultValues = {
   password: "",
 }
 
-export default function HookForm() {
-  const { formState, register, handleSubmit, setError, setValue } = useForm<DefaultValues>({
-    mode: "onTouched",
-    defaultValues,
-  })
+export default function Form() {
+  const { formState, register, handleSubmit, setError, setValue } = useForm<DefaultValues>({ defaultValues })
 
   const onSubmit = async (data: DefaultValues) => {
     console.log(data)
@@ -50,7 +47,7 @@ export default function HookForm() {
         .then((response) => response.json())
         .then((json) => console.log(json))
     } catch (error) {
-      setError("email", { message: "에러가 발생했어요" })
+      setError("email", "에러가 발생했어요")
     }
   }
 
@@ -63,7 +60,7 @@ export default function HookForm() {
       <div>
         <label htmlFor="email">Email</label>
         <input type="text" id="email" {...register("email", emailValidate)} className="border border-slate-700" />
-        {formState.errors.email && <p>{formState.errors.email.message}</p>}
+        {formState.errors.email && <p>{formState.errors.email}</p>}
       </div>
       <div>
         <label htmlFor="password">Password</label>
@@ -73,7 +70,7 @@ export default function HookForm() {
           {...register("password", passwordValidate)}
           className="border border-slate-700"
         />
-        {formState.errors.password && <p>{formState.errors.password.message}</p>}
+        {formState.errors.password && <p>{formState.errors.password}</p>}
       </div>
       <button disabled={!formState.isValid || formState.isSubmitting}>Submit</button>
     </form>
