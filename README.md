@@ -11,13 +11,15 @@
 - `handleSubmit`: 폼 제출 시 호출되는 함수로, 유효성 검사를 통과하면 제출을 처리하는 역할
 - `setValue`: 특정 필드의 값을 설정하는 함수
 - `setError`: 특정 필드에 에러 메시지를 설정하는 함수
+- `reset`: 폼을 초기 상태로 되돌리거나 제출 후 입력된 값들을 모두 초기화하는 함수
 
 ```tsx
 const {
-  formState: { touchedFields, errors },
+  formState: { values, touchedFields, errors },
   register,
   setValue,
   setError,
   handleSubmit,
+  reset,
 } = useForm({ defaultValues })
 ```
