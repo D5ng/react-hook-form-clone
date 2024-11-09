@@ -39,3 +39,19 @@ export function validateField<TFieldValues extends FieldValues>(
 export function hasAnyError<TFieldValues extends FieldValues>(errors: FieldState<TFieldValues, string>) {
   return Object.values(errors).some((error) => error) || Object.keys(errors).length === 0
 }
+
+export function validateForm<TFieldValues extends FieldValues>(
+  values: TFieldValues,
+  validateLookup: Partial<FieldState<TFieldValues, RegisterOptions>>
+) {
+  let errors: FieldState<TFieldValues, string> = {}
+
+  for (const field in values) {
+    const fieldValue = values[field]
+    const filedValidate = validateLookup[field]
+    const fieldErrors = validateField(fieldValue, field, filedValidate)
+    errors = { ...errors, ...fieldErrors }
+  }
+
+  return errors
+}
