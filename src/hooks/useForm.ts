@@ -1,6 +1,5 @@
-import { ChangeEventHandler, FocusEventHandler, useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type {
-  FieldElement,
   FieldState,
   FieldValues,
   RegisterOptions,
@@ -8,9 +7,12 @@ import type {
   UseFormParams,
   UseFormRegister,
   UseFormReturn,
+  UseFormSetError,
+  UseFormSetValue,
   UseFormState,
+  ChangeHandler,
 } from "@/types/form"
-import { hasAnyError, validateField } from "@/utils/validation"
+import { hasAnyError, validateField, validateForm } from "@/utils/validation"
 
 export default function useForm<TFieldValues extends FieldValues = FieldValues>({
   defaultValues,
@@ -24,20 +26,26 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
     defaultValues,
   })
 
-  const validateOptions = useRef<Partial<Record<keyof TFieldValues, RegisterOptions>>>({})
+  const validateOptions = useRef<Partial<FieldState<TFieldValues, RegisterOptions>>>({})
 
-  const handleChange: ChangeEventHandler<FieldElement> = useCallback((event) => {
-    setFormState((prevFormState) => ({
-      ...prevFormState,
-      values: { ...prevFormState.values, [event.target.name]: event.target.value },
-    }))
-  }, [])
+  const handleChange: ChangeHandler = useCallback((event) => {
+    const field = event.target.name
+    const fieldValue = event.target.value
+    const filedValidate = validateOptions.current[field]
+    const fieldErrors = validateField(fieldValue, field, filedValidate)
+    const isBlurEvent = event.type === "blur"
 
-  const handleBlur: FocusEventHandler<FieldElement> = useCallback((event) => {
-    setFormState((prevFormState) => ({
-      ...prevFormState,
-      touchedFields: { ...prevFormState.touchedFields, [event.target.name]: true },
-    }))
+    setFormState((prevFormState) => {
+      const isEqualValue = prevFormState.values[field] === fieldValue && fieldValue.trim().length !== 0
+      const error = isEqualValue ? { [field]: prevFormState.errors[field] } : fieldErrors
+
+      return {
+        ...prevFormState,
+        values: { ...prevFormState.values, [field]: fieldValue },
+        errors: isBlurEvent ? { ...prevFormState.errors, ...error } : { ...prevFormState.errors, ...fieldErrors },
+        touchedFields: isBlurEvent ? { ...prevFormState.touchedFields, [field]: true } : prevFormState.touchedFields,
+      }
+    })
   }, [])
 
   const handleError = useCallback(
@@ -49,32 +57,7 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
     []
   )
 
-  const validateForm = useCallback((values: TFieldValues) => {
-    let errors: FieldState<TFieldValues, string> = {}
-
-    for (const field in values) {
-      const fieldValue = values[field]
-      const filedValidate = validateOptions.current[field]
-      const fieldErrors = validateField(fieldValue, field, filedValidate)
-      errors = { ...errors, ...fieldErrors }
-    }
-
-    return errors
-  }, [])
-
-  const touchedFieldValdiate = useCallback(() => {
-    for (const field in formState.touchedFields) {
-      if (formState.touchedFields[field]) {
-        const fieldValue = formState.values[field]
-        const filedValidate = validateOptions.current[field]
-        const fieldErrors = validateField(fieldValue, field, filedValidate)
-
-        handleError(fieldErrors)
-      }
-    }
-  }, [formState.touchedFields, formState.values, handleError])
-
-  const resetFormState = useCallback(() => {
+  const reset = useCallback(() => {
     setFormState((prevFormState) => ({
       values: prevFormState.defaultValues,
       touchedFields: {},
@@ -87,7 +70,7 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
 
   const handleSubmit: UseFormHandleSubmit<TFieldValues> = (onSubmit, onError) => async (event) => {
     event.preventDefault()
-    const errors = validateForm(formState.values)
+    const errors = validateForm(formState.values, validateOptions.current)
 
     if (hasAnyError(errors)) {
       handleError(errors)
@@ -98,7 +81,6 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
 
     try {
       await onSubmit(formState.values)
-      resetFormState()
     } catch (error) {
       const err = error as Error
       if (onError) {
@@ -109,17 +91,24 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
     }
   }
 
-  useEffect(() => {
-    touchedFieldValdiate()
-  }, [touchedFieldValdiate])
+  const setValue: UseFormSetValue<TFieldValues> = useCallback((field, value) => {
+    setFormState((prevFormState) => ({ ...prevFormState, values: { ...prevFormState.values, [field]: value } }))
+  }, [])
+
+  const setError: UseFormSetError<TFieldValues> = useCallback((field, message) => {
+    setFormState((prevFormState) => ({ ...prevFormState, errors: { ...prevFormState.errors, [field]: message } }))
+  }, [])
 
   useEffect(() => {
-    if (hasAnyError(formState.errors)) {
+    const errors = validateForm(formState.values, validateOptions.current)
+
+    if (hasAnyError(errors)) {
+      setFormState((prevFormState) => ({ ...prevFormState, isValid: false }))
       return
     }
 
     setFormState((prevFormState) => ({ ...prevFormState, isValid: true }))
-  }, [formState.errors])
+  }, [formState.errors, formState.values])
 
   const register: UseFormRegister<TFieldValues> = useCallback(
     (name, options) => {
@@ -131,15 +120,18 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
         name,
         value: formState.values[name],
         onChange: handleChange,
-        onBlur: handleBlur,
+        onBlur: handleChange,
       }
     },
-    [formState.values, handleBlur, handleChange]
+    [formState.values, handleChange]
   )
 
   return {
     formState,
     register,
     handleSubmit,
+    setValue,
+    setError,
+    reset,
   }
 }
