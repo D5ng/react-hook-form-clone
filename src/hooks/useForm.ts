@@ -11,6 +11,8 @@ import type {
   UseFormSetValue,
   UseFormState,
   ChangeHandler,
+  FieldElement,
+  FieldName,
 } from "@/types/form"
 import { hasAnyError, validateField, validateForm } from "@/utils/validation"
 
@@ -27,6 +29,7 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
   })
 
   const validateOptions = useRef<Partial<FieldState<TFieldValues, RegisterOptions>>>({})
+  const fieldsRef = useRef<Partial<FieldState<TFieldValues, FieldElement>>>({})
 
   const handleChange: ChangeHandler = useCallback((event) => {
     const field = event.target.name
@@ -97,19 +100,19 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
 
   const setError: UseFormSetError<TFieldValues> = useCallback((field, message) => {
     setFormState((prevFormState) => ({ ...prevFormState, errors: { ...prevFormState.errors, [field]: message } }))
+    fieldsRef.current[field].focus()
   }, [])
 
-  useEffect(() => {
-    const errors = validateForm(formState.values, validateOptions.current)
-    const isError = hasAnyError(errors) || hasAnyError(formState.errors)
+  const setFieldsRef = useCallback(
+    (name: FieldName<TFieldValues>) => (node: FieldElement) => {
+      if (fieldsRef.current[name]) {
+        return
+      }
 
-    if (isError) {
-      setFormState((prevFormState) => ({ ...prevFormState, isValid: false }))
-      return
-    }
-
-    setFormState((prevFormState) => ({ ...prevFormState, isValid: true }))
-  }, [formState.errors, formState.values])
+      fieldsRef.current[name] = node
+    },
+    []
+  )
 
   const register: UseFormRegister<TFieldValues> = useCallback(
     (name, options) => {
@@ -122,10 +125,30 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
         value: formState.values[name],
         onChange: handleChange,
         onBlur: handleChange,
+        ref: setFieldsRef(name),
       }
     },
-    [formState.values, handleChange]
+    [formState.values, handleChange, setFieldsRef]
   )
+
+  useEffect(() => {
+    const errors = validateForm(formState.values, validateOptions.current)
+    const isError = hasAnyError(errors) || hasAnyError(formState.errors)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const getFirstError = Object.entries(formState.errors).find(([_, value]) => value?.trim() !== "")
+
+    if (getFirstError) {
+      const field = getFirstError[0] as FieldName<TFieldValues>
+      fieldsRef.current[field]?.focus()
+    }
+
+    if (isError) {
+      setFormState((prevFormState) => ({ ...prevFormState, isValid: false }))
+      return
+    }
+
+    setFormState((prevFormState) => ({ ...prevFormState, isValid: true }))
+  }, [formState.errors, formState.values])
 
   return {
     formState,
