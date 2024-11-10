@@ -101,8 +101,9 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
 
   useEffect(() => {
     const errors = validateForm(formState.values, validateOptions.current)
+    const isError = hasAnyError(errors) || hasAnyError(formState.errors)
 
-    if (hasAnyError(errors)) {
+    if (isError) {
       setFormState((prevFormState) => ({ ...prevFormState, isValid: false }))
       return
     }
