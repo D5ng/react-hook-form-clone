@@ -2,7 +2,7 @@
 
 상태관리를 이용해 React Hook Form과 유사한 인터페이스 구현하기.
 
-| 만드는 이유 => 관리하는 폼이 많다면 사용하는게 이점이 있을 수 있지만 관리하는 폼이 적다면 성능상 이점을 얻기 힘들다.
+만드는 이유: 관리하는 폼이 많다면 RHF를 사용하는게 이점이 있을 수 있지만 관리하는 폼이 적다면 성능상 이점을 얻기 힘들다.
 
 ## 구현할 기능
 
@@ -23,3 +23,7 @@ const {
   reset,
 } = useForm({ defaultValues })
 ```
+
+## Blog
+
+[D5ngBlog](https://d5ng-blog.vercel.app/React/rhf)
