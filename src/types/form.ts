@@ -7,6 +7,8 @@ export type FieldState<TFieldValues, FieldStateType> = Partial<Record<keyof TFie
 
 export type FieldName<TFieldValues extends FieldValues> = keyof TFieldValues
 
+export type FieldElement = HTMLInputElement | HTMLTextAreaElement
+
 export type ChangeHandler = (event: { target: any; type?: any }) => void
 
 export interface UseFormState<TFieldValues> {
