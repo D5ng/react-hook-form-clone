@@ -11,6 +11,8 @@ export type FieldElement = HTMLInputElement | HTMLTextAreaElement
 
 export type ChangeHandler = (event: { target: any; type?: any }) => void
 
+export type RefCallback = (node: FieldElement) => void
+
 export interface UseFormState<TFieldValues> {
   values: TFieldValues
   touchedFields: FieldState<TFieldValues, boolean>
@@ -50,6 +52,7 @@ export type UseFormRegisterReturn<TFieldName extends keyof TFieldValues, TFieldV
   onChange: ChangeHandler
   onBlur: ChangeHandler
   value: TFieldValues[TFieldName]
+  ref: RefCallback
 }
 
 export type SubmitHandler<TFieldValues> = (data: TFieldValues) => Promise<void> | void
