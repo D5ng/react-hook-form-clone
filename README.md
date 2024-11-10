@@ -26,5 +26,4 @@ const {
 
 ## Blog
 
-자세한 포스팅
-[D5ngBlog](https://d5ng-blog.vercel.app/React/rhf)
+- [자세한 포스팅](https://d5ng-blog.vercel.app/React/rhf) 
