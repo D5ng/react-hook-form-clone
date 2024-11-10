@@ -100,36 +100,30 @@ export default function useForm<TFieldValues extends FieldValues = FieldValues>(
 
   const setError: UseFormSetError<TFieldValues> = useCallback((field, message) => {
     setFormState((prevFormState) => ({ ...prevFormState, errors: { ...prevFormState.errors, [field]: message } }))
-    fieldsRef.current[field].focus()
+    fieldsRef.current[field]?.focus()
   }, [])
 
-  const setFieldsRef = useCallback(
-    (name: FieldName<TFieldValues>) => (node: FieldElement) => {
-      if (fieldsRef.current[name]) {
-        return
-      }
+  const setFieldsRef = (name: FieldName<TFieldValues>) => (node: FieldElement) => {
+    if (fieldsRef.current[name]) {
+      return
+    }
 
-      fieldsRef.current[name] = node
-    },
-    []
-  )
+    fieldsRef.current[name] = node
+  }
 
-  const register: UseFormRegister<TFieldValues> = useCallback(
-    (name, options) => {
-      if (options) {
-        validateOptions.current[name] = options
-      }
+  const register: UseFormRegister<TFieldValues> = (name, options) => {
+    if (options && !validateOptions.current[name]) {
+      validateOptions.current[name] = options
+    }
 
-      return {
-        name,
-        value: formState.values[name],
-        onChange: handleChange,
-        onBlur: handleChange,
-        ref: setFieldsRef(name),
-      }
-    },
-    [formState.values, handleChange, setFieldsRef]
-  )
+    return {
+      name,
+      value: formState.values[name],
+      onChange: handleChange,
+      onBlur: handleChange,
+      ref: setFieldsRef(name),
+    }
+  }
 
   useEffect(() => {
     const errors = validateForm(formState.values, validateOptions.current)
